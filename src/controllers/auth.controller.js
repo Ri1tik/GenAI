@@ -1,0 +1,128 @@
+const userModel = require("../models/user.model")
+const bcrypt = require("bcryptjs")
+const jwt = require("jsonwebtoken")
+
+/**
+ * @name registerUser
+ * @description Controller function to handle user registration
+ * @route POST /api/auth/register
+ */
+
+async function registerUserController(req,res){
+    const { username, email, password } = req.body
+
+    if(!username || !email || !password){
+        return res.status(400).json({
+            success: false,
+            message: "All fields are required"
+        })
+    }
+
+    const isUserAlreadyExists = await userModel.findOne({
+        $or: [
+            { username },
+            { email }
+        ]
+    })
+
+    if(isUserAlreadyExists){
+        if(isUserAlreadyExists.username === username){
+            return res.status(400).json({
+                success: false,
+                message: "Username already taken"
+            })
+        }
+        else{
+            return res.status(400).json({
+                success: false,
+                message: "Account already exists with this email address"
+            })
+        }
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10)
+
+    const User = new userModel({
+        username,
+        email,
+        password: hashedPassword
+    })
+
+    const token = jwt.sign({
+        id:user._id,username: user.username,email: user.email
+    }, process.env.JWT_SECRET,
+    { expiresIn: "2d" })
+    
+    res.token("token",token)
+
+    res.status(201).json({
+        success: true,
+        message: "User registered successfully", 
+        user: {
+            id: User._id,
+            username: User.username,
+            email: User.email
+        }
+    })
+}
+
+/**
+ * @name loginUser
+ * @description Controller function to handle user login
+ * @route POST /api/auth/login
+ */
+
+async function loginUserController(req,res){
+    const { email, password } = req.body
+
+    if(!email || !password){
+        return res.status(400).json({
+            success: false,
+            message: "All fields are required"
+        })
+    }
+
+    const user = await userModel.findOne({email})
+
+    if(!user){
+        return res.status(400).json({
+            success:false,
+            message: "Invalid email or password"
+        })
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password)
+    if(!isPasswordValid){
+        return res.status(400).json({
+            success:false,
+            message: "Invalid email or password"
+        })
+    }
+    const token = jwt.sign({
+        id:user._id,username: user.username,email: user.email
+    }, process.env.JWT_SECRET,
+    { expiresIn: "2d" })
+
+    res.token("token",token)
+
+    res.status(200).json({
+        status:true,
+        message: "User logged in successfully",
+        user:{
+            id:user._id,
+            username: user.username,
+            email: user.email
+        }
+    })
+}
+
+/**
+ * @name logoutUser
+ * @description Controller function to handle user logout
+ * @route POST /api/auth/logout
+ */
+
+module.exports = {
+    registerUserController,
+    loginUserController
+}
