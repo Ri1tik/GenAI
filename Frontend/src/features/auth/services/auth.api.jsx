@@ -56,7 +56,7 @@ export async function getMe() {
 
     try {
 
-        const response = await api.get("/api/auth/get-me")
+        const response = await api.get("/api/auth/getMe")
 
         return response.data
 
