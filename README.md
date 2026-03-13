@@ -47,8 +47,7 @@ A production-ready full-stack GenAI web application that helps users prepare for
 GenAI/
 ├── Backend/
 │   ├── src/
-│   │   ├── controllers/       # Business logic
-│   │   │   └── auth.controller.js
+│   │   ├── controllers/       # auth.controller.js , interview.controller.js
 │   │   ├── models/            # MongoDB schemas
 │   │   │   ├── user.model.js
 │   │   │   └── blacklist.model.js
